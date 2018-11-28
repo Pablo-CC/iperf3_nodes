@@ -1,0 +1,72 @@
+- name: Perform tests
+  hosts: all
+  vars:
+    fetch_directory: "{{ playbook_dir }}/fetch"
+    script_path: "perf3_script.py"
+  gather_facts: True
+  tasks:
+    - name: Set facts
+      set_fact:
+        output_directory: "{{ ansible_env.HOME }}/iperf3_tests"
+
+    - name: Create output directory
+      file:
+        path: "{{ output_directory }}"
+        state: directory
+      run_once: True
+
+    - name: Start iperf3 servers
+      command: "iperf3 --server --daemon"
+
+    - include_tasks: clients.yml
+      with_items: "{{ ansible_play_batch }}"
+      when: "hostvars[host_item].inventory_hostname == inventory_hostname"
+      loop_control:
+        loop_var: host_item
+      tags: [run_tests]
+
+    - name: Kill servers
+      command: "pkill iperf3"
+    
+    - name: Register result files
+      find:
+        paths: "{{ output_directory }}"
+        patterns: "{{ ansible_nodename }}*"
+        file_type: file
+      register: find_results
+
+    - name: Create directory for fetching result files
+      run_once: True
+      local_action:
+        module: file
+        args:
+          path: "{{ fetch_directory }}"
+          state: directory
+
+    - name: Fetch result files
+      fetch:
+        src: "{{ item.path }}"
+        dest: "{{ fetch_directory }}/"
+        flat: True
+      with_items: "{{ find_results.files }}"
+
+    - name: Template script
+      run_once: True
+      local_action:
+        module: template
+        args:
+          src: "{{ playbook_dir }}/{{ script_path }}.j2"
+          dest: "{{ playbook_dir }}/{{ script_path }}"
+
+    - name: Run python script
+      run_once: True
+      local_action:
+        module: "shell python {{ script_path }}"
+        args:
+          chdir: "{{ playbook_dir }}"
+      register: script_results
+
+    - name: Print dataframe
+      run_once: True
+      debug:
+        var: script_results.stdout_lines

@@ -1,0 +1,4 @@
+- name: Run test
+  shell: "iperf3 --json --client {{ hostvars[item].ansible_eth0.ipv4.address }} --time 2" # > {{ output_directory }}/{{ ansible_nodename }}_{{ hostvars[item].ansible_nodename }}"
+  with_items: "{{ groups['all'] }}"
+  when: item != host_item
