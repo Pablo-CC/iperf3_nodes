@@ -3,13 +3,12 @@
   vars:
     fetch_directory: "{{ playbook_dir }}/fetch"
     script_path: "perf3_script.py"
-  gather_facts: True
   tasks:
     - name: Set facts
       set_fact:
         output_directory: "{{ ansible_env.HOME }}/iperf3_tests"
 
-    - name: Create output directory
+    - name: Create output directorya in remote nodes
       file:
         path: "{{ output_directory }}"
         state: directory
@@ -18,6 +17,7 @@
     - name: Start iperf3 servers
       command: "iperf3 --server --daemon"
 
+    #Simulate serial, one client at a time
     - include_tasks: clients.yml
       with_items: "{{ ansible_play_batch }}"
       when: "hostvars[host_item].inventory_hostname == inventory_hostname"
@@ -35,7 +35,7 @@
         file_type: file
       register: find_results
 
-    - name: Create directory for fetching result files
+    - name: Create directory on local host for fetching result files
       run_once: True
       local_action:
         module: file
@@ -57,6 +57,7 @@
         args:
           src: "{{ playbook_dir }}/{{ script_path }}.j2"
           dest: "{{ playbook_dir }}/{{ script_path }}"
+      tags: template
 
     - name: Run python script
       run_once: True
