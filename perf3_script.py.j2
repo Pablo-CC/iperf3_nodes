@@ -2,7 +2,12 @@ import json
 import os
 import pandas as pd
 
-nodes = ['wn019', 'wn020', 'wn021', 'wn022']
+nodes = [
+{% for node in groups['all'] %}
+  '{{hostvars[node].ansible_nodename}}', 
+{% endfor %}
+]
+
 data = []
 
 for node1 in nodes:
