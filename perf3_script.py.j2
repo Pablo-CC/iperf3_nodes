@@ -4,7 +4,7 @@ import pandas as pd
 
 nodes = [
 {% for node in groups['all'] %}
-  '{{hostvars[node].ansible_nodename}}', 
+  '{{hostvars[node].ansible_ssh_host}}', 
 {% endfor %}
 ]
 
