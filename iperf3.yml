@@ -1,5 +1,6 @@
 - name: Perform tests
   hosts: all
+  gather_facts: True
   vars:
     fetch_directory: "{{ playbook_dir }}/fetch"
     script_path: "perf3_script.py"
@@ -7,12 +8,21 @@
     - name: Set facts
       set_fact:
         output_directory: "{{ ansible_env.HOME }}/iperf3_tests"
+      # host: "{{ host }}"
 
-    - name: Create output directorya in remote nodes
+    - name: Create output directory in remote nodes
       file:
         path: "{{ output_directory }}"
         state: directory
-      run_once: True
+
+    - name: Change wmem_max and rmem_max
+      become: True
+      sysctl:
+        name: "{{ item.name }}"
+        value: "{{ item.value }}"
+      with_items:
+        - { name: net.core.rmem_max, value: 2147483647 }
+        - { name: net.core.wmem_max, value: 2147483647 }
 
     - name: Start iperf3 servers
       command: "iperf3 --server --daemon"
@@ -31,17 +41,20 @@
     - name: Register result files
       find:
         paths: "{{ output_directory }}"
-        patterns: "{{ ansible_nodename }}*"
+        patterns: "{{ ansible_ssh_host }}*"
         file_type: file
       register: find_results
 
-    - name: Create directory on local host for fetching result files
+    - name: Create directory on local host for fetching result files (make sure it's empty)
       run_once: True
       local_action:
         module: file
         args:
           path: "{{ fetch_directory }}"
-          state: directory
+          state: "{{ item }}"
+      with_items:
+        - absent
+        - directory
 
     - name: Fetch result files
       fetch:
