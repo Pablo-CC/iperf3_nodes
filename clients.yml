@@ -1,4 +1,6 @@
+
 - name: Run test
-  shell: "iperf3 --json --client {{ hostvars[item].ansible_eth0.ipv4.address }} --time 2" # > {{ output_directory }}/{{ ansible_nodename }}_{{ hostvars[item].ansible_nodename }}"
+  run_once: True
+  shell: "iperf3 --json --client {{ hostvars[item].host }} --time 30 --window 256M --no-delay > {{ output_directory }}/{{ ansible_ssh_host }}_{{ hostvars[item].ansible_ssh_host }}"
   with_items: "{{ groups['all'] }}"
-  when: item != host_item
+  when: item != host_item 
