@@ -1,11 +1,13 @@
-client  ansible_ssh_host=wn019
-gateway ansible_ssh_host=wn020
-server1 ansible_ssh_host=wn021
-server2 ansible_ssh_host=wn022
+[mds]
+mds1 ansible_ssh_host=mds1
+mds2 ansible_ssh_host=mds2
 
-[gateways]
-gateway
-
-[tds]
-server1
-server2
+[oss]
+oss01 ansible_ssh_host=oss01
+#oss02 ansible_ssh_host=oss02
+oss03 ansible_ssh_host=oss03
+oss04 ansible_ssh_host=oss04
+oss05 ansible_ssh_host=oss05
+oss06 ansible_ssh_host=oss06
+oss07 ansible_ssh_host=oss07
+oss08 ansible_ssh_host=oss08
