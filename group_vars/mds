@@ -1,0 +1,2 @@
+host: "{{ ansible_ens1.ipv4.address }}" #100GbE
+#host: "{{ ansible_eno1.ipv4.address }}" #10GbE
